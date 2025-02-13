@@ -10,8 +10,11 @@ engine = create_engine('sqlite:///db/foo.db', echo=False)
 
 def latest_extraction():
     # "latest" endpoint - request the most recent exchange rate data
+    # making an api request and returns data in json 
     latest_response = requests.get("http://api.exchangeratesapi.io/v1/latest?access_key=6e45c8ce217f5beca6893ac6968c5c2f")  # noqa: E501
+    # converts it to a text 
     latest_data = latest_response.text
+    # converts it from text to python dictionary for easy manipulation 
     latest_parsed = json.loads(latest_data)
     latest_data_dict = latest_response.json()['rates']
     latest_data_items = latest_data_dict.items()
