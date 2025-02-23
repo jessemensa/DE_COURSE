@@ -10,7 +10,7 @@ The motivation behind this Project is to simplify and Automate the process invol
 
 ## File structure
 
-.
+```
 ├── Dockerfile
 ├── Readme.md
 ├── Tests
@@ -24,20 +24,20 @@ The motivation behind this Project is to simplify and Automate the process invol
 └── ETL.png
 
 2 directories, 9 files
-
+```
 
 ## Dependencies
 - pandas
 ```bash
-pip install pandas
+pip install pandas==2.2.3
 ```
 - requests
 ```bash
-pip install requests
+pip install requests==2.32.3
 ```
 - SqlAlchemy
 ```bash
-pip install sqlalchemy
+pip install sqlalchemy==2.0
 ```
 - requests-mock
 ```bash
