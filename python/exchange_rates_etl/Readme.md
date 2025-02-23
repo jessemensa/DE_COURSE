@@ -1,4 +1,4 @@
-# heycar ETL for Currency Converter
+# ETL for Currency Converter
 
 This repository contains a simple python script that will allow us to programmatically interact with the 'Exchangerates API"
 provided in the Challenge allowing us to build an ETL pipeline .
@@ -20,8 +20,8 @@ The motivation behind this Project is to simplify and Automate the process invol
 ├── db
 │   └── foo.db
 ├── docker-compose.yml
-├── heycar.py
-└── heycar_ETL.png
+├── main.py
+└── ETL.png
 
 2 directories, 9 files
 
@@ -48,7 +48,7 @@ pip install requests-mock
 
 # How to use
 
-The file "heycar.py" contains the ETL script and relies on certain libraries to function hence i have provided a simple a way for us
+The file "main.py" contains the ETL script and relies on certain libraries to function hence i have provided a simple a way for us
 to run this code locally using containerization via Docker. Simply clone or fork this repository to your local environment and execute
 the code you see below :
 
@@ -58,7 +58,7 @@ docker compose up
 ```
 ## Useful Info
 
-- In order to persist the data within the container , we mounted a directory containing an sqlite databse which would house our structured data after ETL . This allowed us to run a sample SQL query at the end  which converts 100 EUR to GBP using exchange rates from 2days ago
+- In order to persist the data within the container , we mounted a directory containing a sqlite databse which would house our structured data after ETL . This allowed us to run a sample SQL query at the end  which converts 100 EUR to GBP using exchange rates from 2days ago
 
 - The ETL is able to re-import historical rates from a specific point in time together with the latest rates.
 
