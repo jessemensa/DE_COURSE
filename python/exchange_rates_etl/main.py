@@ -1,84 +1,61 @@
-# Importing Relevant Pyrhon libraries
 import pandas as pd
 import requests
-import json
+import sqlite3
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine
 
-engine = create_engine('sqlite:///db/foo.db', echo=False)
+# Constants
+DB_PATH = "db/foo.db"
+API_BASE_URL = "http://api.exchangeratesapi.io/v1/"
+ACCESS_KEY = "6e45c8ce217f5beca6893ac6968c5c2f"
 
+# Database connection
+def get_db_connection():
+    return sqlite3.connect(DB_PATH)
 
-def latest_extraction():
-    # "latest" endpoint - request the most recent exchange rate data
-    # making an api request and returns data in json 
-    latest_response = requests.get("http://api.exchangeratesapi.io/v1/latest?access_key=6e45c8ce217f5beca6893ac6968c5c2f")  # noqa: E501
-    # converts it to a text 
-    latest_data = latest_response.text
-    # converts it from text to python dictionary for easy manipulation 
-    latest_parsed = json.loads(latest_data)
-    latest_data_dict = latest_response.json()['rates']
-    latest_data_items = latest_data_dict.items()
-    latest_data_list = list(latest_data_items)
-    latest_df = pd.DataFrame(latest_data_list, columns=['currency', 'rate'])
-    latest_df["date"] = latest_parsed["date"]
+def fetch_exchange_rates(endpoint: str):
+    url = f"{API_BASE_URL}{endpoint}?access_key={ACCESS_KEY}"
+    response = requests.get(url)
+    response.raise_for_status()  # Raise error for bad response
+    return response.json()
 
-    return latest_df
+def extract_latest_rates():
+    data = fetch_exchange_rates("latest")
+    return pd.DataFrame(data['rates'].items(), columns=['currency', 'rate']).assign(date=data['date'])
 
+def extract_historic_rates():
+    date_str = (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d')
+    data = fetch_exchange_rates(date_str)
+    return pd.DataFrame(data['rates'].items(), columns=['currency', 'rate']).assign(date=data['date'])
 
-def historic_extraction():
-    # "Historic - 2DAYS AGO" endpoint - request the exchange rate data from 2 days ago  # noqa: E501
+def merge_rates(latest_df, historic_df):
+    return (pd.concat([latest_df, historic_df], ignore_index=True)
+            .sort_values(by='currency')
+            .drop_duplicates(subset=['currency', 'date'], keep=False))
 
-    # Calculate date for 2 days ago
-    N = 2
-    date_N_days_ago = datetime.now() - timedelta(days=N)
-    date_N_days_ago = date_N_days_ago.strftime('%Y-%m-%d')
+def save_to_db(df, conn):
+    df.to_sql('exchange_rates', conn, if_exists='replace', index=False)
 
-    historic_response = requests.get("http://api.exchangeratesapi.io/v1/{}?access_key=6e45c8ce217f5beca6893ac6968c5c2f".format(date_N_days_ago))  # noqa: E501
-    historic_data = historic_response.text
-    historic_parsed = json.loads(historic_data)
-    historic_data_dict = historic_response.json()['rates']
-    historic_data_items = historic_data_dict.items()
-    historic_data_list = list(historic_data_items)
-    historic_df = pd.DataFrame(historic_data_list, columns=['currency', 'rate'])  # noqa: E501
-    historic_df["date"] = historic_parsed["date"]
-
-    return historic_df
-
-
-def merge_latest_and_historic(latest_df, historic_df):
-
-    df1 = latest_df
-    df2 = historic_df
-
-    frames = [df1, df2]
-    result = pd.concat(frames, ignore_index=True)
-    exhange_rates = result.sort_values(by='currency', ascending=True, ignore_index=True)  # noqa: E501
-    # Drop duplicate records from dataframe if any
-    exhange_rates = exhange_rates.drop_duplicates(keep=False)
-
-    return exhange_rates
-
-
-def create_sqlite_database(exhange_rates):
-
-    exhange_rates = exhange_rates
-    exhange_rates.to_sql('exhange_rates', con=engine, if_exists='replace')
-
-
-def convertion():
-    # converts EUR to GBP based on exchange rate 2days ago
-    conv = engine.execute("SELECT 100*rate FROM exhange_rates WHERE currency = 'GBP' AND date = '2021-06-26'").fetchall()  # noqa: E501
-    print(" 100 EUR --- > GBP : 2 DAYS AGO WAS :")
-    print("Conversion : ", conv)
-
+def perform_conversion(conn):
+    query = """
+        SELECT 100 * rate 
+        FROM exchange_rates 
+        WHERE currency = 'GBP' 
+        AND date = (SELECT MAX(date) FROM exchange_rates WHERE currency = 'GBP')
+    """
+    result = conn.execute(query).fetchone()
+    if result:
+        print(f"100 EUR was worth {result[0]:.2f} GBP 2 days ago.")
 
 def main():
-    # Main function that combines all functions previously defined with return values  # noqa: E501
-    latest_df = latest_extraction()
-    historic_df = historic_extraction()
-    exhange_rates = merge_latest_and_historic(latest_df, historic_df)
-    create_sqlite_database(exhange_rates)
-    convertion()
+    conn = get_db_connection()
+    try:
+        latest_df = extract_latest_rates()
+        historic_df = extract_historic_rates()
+        exchange_rates = merge_rates(latest_df, historic_df)
+        save_to_db(exchange_rates, conn)
+        perform_conversion(conn)
+    finally:
+        conn.close()
 
-
-main()
+if __name__ == "__main__":
+    main()
