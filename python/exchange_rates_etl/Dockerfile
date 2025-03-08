@@ -8,3 +8,5 @@ RUN pip install sqlalchemy==2.0
 
 
 ENTRYPOINT ["python", "main.py"]
+
+

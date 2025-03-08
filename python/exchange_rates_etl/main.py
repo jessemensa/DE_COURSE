@@ -2,15 +2,22 @@ import pandas as pd
 import requests
 import sqlite3
 from datetime import datetime, timedelta
+import os 
 
 # Constants
-DB_PATH = "db/foo.db"
+DB_PATH = "db/foo.db" 
 API_BASE_URL = "http://api.exchangeratesapi.io/v1/"
-ACCESS_KEY = "6e45c8ce217f5beca6893ac6968c5c2f"
+ACCESS_KEY = "901ca420ca881948f44c28505e16bccf"
 
 # Database connection
+
 def get_db_connection():
+    # Create the directory if it doesn't exist
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     return sqlite3.connect(DB_PATH)
+
+# def get_db_connection():
+#     return sqlite3.connect(DB_PATH)
 
 def fetch_exchange_rates(endpoint: str):
     url = f"{API_BASE_URL}{endpoint}?access_key={ACCESS_KEY}"
