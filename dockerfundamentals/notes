@@ -1,0 +1,6 @@
+# HOW TO USE DOCKER WITH THIS PROJECT 
+*** Build the docker image: Open terminal and navigate to project directory.** 
+docker build -t docker-python-test .
+
+*** Run the docker container: After building your image** 
+docker run docker-python-test
