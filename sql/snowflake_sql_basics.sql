@@ -47,7 +47,8 @@ VALUES
 (1, 'Alice', 'HR', 75000, '2023-01-15'),
 (2, 'Bob', 'Finance', 85000, '2022-03-20'),
 (3, 'Charlie', 'Engineering', 95000, '2021-06-10'),
-(4, 'Dana', 'Marketing', 72000, '2023-07-25');
+(4, 'Dana', 'Marketing', 72000, '2023-07-25'),
+(5, 'James', 'Accounting', 82000, '2023-08-25');
 
 SELECT *
 FROM employees
@@ -73,6 +74,7 @@ UPDATE employees SET email = 'alice@example.com' WHERE id = 1;
 UPDATE employees SET email = 'bob@example.com' WHERE id = 2;
 UPDATE employees SET email = 'charlie@example.com' WHERE id = 3;
 UPDATE employees SET email = 'dana@example.com' WHERE id = 4;
+UPDATE employees SET email = 'james@example.com' WHERE id = 5;
 
 SELECT * FROM employees;
 
